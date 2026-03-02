@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,7 +19,8 @@ Route::prefix('admin')
             return redirect()->route('dashboard');
         })->name('home');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
+        Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
     });
 
-
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';
