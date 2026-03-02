@@ -24,8 +24,8 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase title="Setup Larablock" description="Enter your details below to create the first user">
-        <Head title="Setup Larablock" />
+    <AuthBase title="Setup the CMS" description="Enter your details below to create the first user">
+        <Head title="Setup the CMS" />
 
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
