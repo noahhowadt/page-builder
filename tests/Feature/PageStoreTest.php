@@ -35,11 +35,11 @@ test('authenticated users can create a page', function () {
     $page = Page::query()->first();
     expect($page)->not->toBeNull();
     expect($page->title)->toBe('About Us');
-    expect($page->slug)->toBe('about-us');
+    expect($page->slug)->toBe('/about-us');
     expect($page->is_published)->toBeFalse();
 });
 
-test('page creation requires title and slug', function () {
+test('page creation requires title', function () {
     /** @var TestCase $this */
     /** @var User $user */
     $user = User::factory()->create();
@@ -50,8 +50,40 @@ test('page creation requires title and slug', function () {
         'slug' => '',
     ]);
 
-    $response->assertSessionHasErrors(['title', 'slug']);
+    $response->assertSessionHasErrors('title');
     expect(Page::query()->count())->toBe(0);
+});
+
+test('empty slug is normalized to root path', function () {
+    /** @var TestCase $this */
+    /** @var User $user */
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->post(route('pages.store'), [
+        'title' => 'Home',
+        'slug' => '',
+    ]);
+
+    $response->assertSessionHasNoErrors()->assertRedirect(route('pages.index'));
+    $page = Page::query()->first();
+    expect($page->slug)->toBe('/');
+});
+
+test('slug without leading slash gets leading slash added', function () {
+    /** @var TestCase $this */
+    /** @var User $user */
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->post(route('pages.store'), [
+        'title' => 'Nested',
+        'slug' => 'test/nested',
+    ]);
+
+    $response->assertSessionHasNoErrors()->assertRedirect(route('pages.index'));
+    $page = Page::query()->where('title', 'Nested')->first();
+    expect($page->slug)->toBe('/test/nested');
 });
 
 test('page slug must be unique', function () {
@@ -62,12 +94,12 @@ test('page slug must be unique', function () {
 
     Page::query()->create([
         'title' => 'Existing',
-        'slug' => 'existing-page',
+        'slug' => '/existing-page',
     ]);
 
     $response = $this->post(route('pages.store'), [
         'title' => 'Another',
-        'slug' => 'existing-page',
+        'slug' => '/existing-page',
     ]);
 
     $response->assertSessionHasErrors('slug');

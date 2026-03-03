@@ -21,6 +21,7 @@ Route::prefix('admin')
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
         Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
+        Route::get('/pages/{page}/edit', [PageController::class, 'edit'])->name('pages.edit');
     });
 
 require __DIR__.'/settings.php';

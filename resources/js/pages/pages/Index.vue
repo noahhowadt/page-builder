@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import PageController from '@/actions/App/Http/Controllers/PageController';
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,10 +11,9 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/InputError.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import type { Page } from '@/types/pages';
@@ -87,7 +87,7 @@ const submit = () => {
                   id="slug"
                   v-model="form.slug"
                   type="text"
-                  placeholder="url-slug"
+                  placeholder="/path/to/page"
                   required
                   autocomplete="off"
                   class="font-mono"
@@ -186,14 +186,14 @@ const submit = () => {
               </td>
               <td class="px-5 py-4">
                 <Link
-                  href="#"
+                  :href="PageController.edit.url({ page: page.id })"
                   class="text-sm font-medium text-neutral-900 dark:text-neutral-100 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors underline-offset-4 hover:underline"
                 >
                   {{ page.title }}
                 </Link>
               </td>
               <td class="whitespace-nowrap px-5 py-4 text-sm text-neutral-600 dark:text-neutral-400 font-mono">
-                /{{ page.slug }}
+                {{ page.slug.startsWith('/') ? page.slug : `/${page.slug}` }}
               </td>
               <td class="whitespace-nowrap px-5 py-4">
                 <span

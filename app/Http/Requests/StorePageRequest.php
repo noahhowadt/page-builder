@@ -16,6 +16,20 @@ class StorePageRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $slug = trim((string) $this->input('slug', ''));
+        if ($slug === '') {
+            $slug = '/';
+        } elseif (! str_starts_with($slug, '/')) {
+            $slug = '/'.$slug;
+        }
+        $this->merge(['slug' => $slug]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -24,7 +38,13 @@ class StorePageRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('pages', 'slug')],
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^\/([a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*)?$/',
+                Rule::unique('pages', 'slug'),
+            ],
         ];
     }
 }
