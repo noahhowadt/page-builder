@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Block } from '@/types';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
+import Text from './Text.vue';
 
 const props = defineProps<{
   block: Block;
@@ -14,31 +15,12 @@ const displayText = computed(() => {
   return textNode?.type === 'text' ? textNode.text : '';
 });
 
-const isEditing = ref(false);
-const editText = ref('');
-const textareaRef = ref<HTMLTextAreaElement | null>(null);
-
-function startEditing() {
-  editText.value = displayText.value;
-  isEditing.value = true;
-  nextTick(() => textareaRef.value?.focus());
-}
-
-function finishEditing() {
-  if (props.onUpdateText) {
-    props.onUpdateText(editText.value);
-  }
-  isEditing.value = false;
-}
+const textRef = ref<{ startEditing: (e?: MouseEvent) => void } | null>(null);
 
 function onDblclick(e: MouseEvent) {
   e.stopPropagation();
-  startEditing();
+  textRef.value?.startEditing(e);
 }
-
-watch(displayText, (val) => {
-  if (!isEditing.value) editText.value = val;
-});
 </script>
 
 <template>
@@ -46,15 +28,10 @@ watch(displayText, (val) => {
     class="min-h-[1.5em] cursor-default"
     @dblclick="onDblclick"
   >
-    <span v-if="!isEditing">{{ displayText || ' ' }}</span>
-    <textarea
-      v-else
-      ref="textareaRef"
-      v-model="editText"
-      class="w-full resize-none border-0 bg-transparent p-0 outline-none focus:ring-0"
-      rows="1"
-      @blur="finishEditing"
-      @keydown.enter.exact.prevent="finishEditing"
+    <Text
+      ref="textRef"
+      :text="displayText"
+      :on-update-text="onUpdateText"
     />
   </p>
 </template>

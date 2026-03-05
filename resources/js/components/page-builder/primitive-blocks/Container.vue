@@ -11,7 +11,6 @@ defineProps<{
 
 <template>
   <div class="relative w-full min-h-25">
-    This is a container.
     <BlockRenderer :structure="block.children || []" :selected-id="selectedId" :on-select="onSelect" />
   </div>
 </template>
