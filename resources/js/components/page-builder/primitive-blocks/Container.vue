@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import type { Block } from '@/types';
 import BlockRenderer from '../BlockRenderer.vue';
 
 defineProps<{
-  block: Block;
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+    blockId: string;
 }>();
 </script>
 
 <template>
-  <div class="relative w-full min-h-25">
-    <BlockRenderer :structure="block.children || []" :selected-id="selectedId" :on-select="onSelect" />
-  </div>
+    <div class="relative flex min-h-25 w-full flex-col">
+        <BlockRenderer :parent-id="blockId" empty-zone-fills-parent />
+    </div>
 </template>

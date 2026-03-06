@@ -1,29 +1,28 @@
 <script setup lang="ts">
-import type { Block } from '@/types';
+import { usePageBuilderStore } from '@/stores/pageBuilder';
 import { computed } from 'vue';
 
 const props = defineProps<{
-  block: Block;
-  selectedId?: string | null;
-  onSelect?: (id: string) => void;
+    blockId: string;
 }>();
 
-const isSelected = computed(() => props.selectedId === props.block.id);
+const store = usePageBuilderStore();
+const isSelected = computed(() => store.selectedBlockId === props.blockId);
 
 function handleClick(e: MouseEvent) {
-  e.stopPropagation();
-  props.onSelect?.(props.block.id);
+    e.stopPropagation();
+    store.selectBlock(props.blockId);
 }
 </script>
 
 <template>
-  <div
-    class="relative border-2 border-transparent transition-colors hover:border-blue-400 hover:border-solid"
-    :class="{
-      'border-blue-500! bg-blue-50/30! dark:bg-blue-950/20!': isSelected
-    }"
-    @click="handleClick"
-  >
-    <slot />
-  </div>
+    <div
+        class="relative border-2 border-transparent transition-colors hover:border-blue-400 hover:border-solid"
+        :class="{
+            'border-blue-500! bg-blue-50/30! dark:bg-blue-950/20!': isSelected,
+        }"
+        @click="handleClick"
+    >
+        <slot />
+    </div>
 </template>
