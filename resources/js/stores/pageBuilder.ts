@@ -42,14 +42,14 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         const children: Node[] =
             type === 'paragraph'
                 ? [
-                      {
-                          type: 'text' as const,
-                          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.',
-                      },
-                  ]
+                    {
+                        type: 'text' as const,
+                        text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.',
+                    },
+                ]
                 : type === 'heading'
-                  ? [{ type: 'text' as const, text: 'Heading' }]
-                  : [];
+                    ? [{ type: 'text' as const, text: 'Heading' }]
+                    : [];
 
         return { id: createId(), type, config: {}, children };
     }

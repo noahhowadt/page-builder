@@ -17,9 +17,9 @@ function handleClick(e: MouseEvent) {
 
 <template>
     <div
-        class="relative border-2 border-transparent transition-colors hover:border-blue-400 hover:border-solid"
+        class="relative hover:outline-2 hover:outline-blue-400"
         :class="{
-            'border-blue-500! bg-blue-50/30! dark:bg-blue-950/20!': isSelected,
+            'outline-blue-500!': isSelected,
         }"
         @click="handleClick"
     >

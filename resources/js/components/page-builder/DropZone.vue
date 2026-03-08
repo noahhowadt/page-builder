@@ -39,11 +39,11 @@ watch(
             fillsParent
                 ? 'absolute inset-0 flex items-center justify-center'
                 : isHighlighted
-                  ? 'h-0 min-h-0 -mb-0.5 border-t-2 border-solid border-red-500'
+                  ? 'h-0 min-h-0 -mb-0.5 outline-1 outline-blue-400'
                   : 'h-0 min-h-0',
         ]"
         @dragover.prevent
     >
-        <div v-if="fillsParent && isHighlighted" class="w-full border-t-2 border-solid border-red-500" />
+        <div v-if="fillsParent && isHighlighted" class="w-full outline-1 outline-blue-400" />
     </div>
 </template>
