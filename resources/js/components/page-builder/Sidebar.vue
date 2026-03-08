@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import type { Block } from '@/types';
-import { BlockType } from '@/types';
+import { usePageBuilderStore } from '@/stores/pageBuilder';
+import { isBlockWithBlockChildren, type Block } from '@/types';
 import { HeadingIcon, LucideIcon, RectangleHorizontalIcon, TextIcon } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
-import { usePageBuilderStore } from '@/stores/pageBuilder';
 import BlockLibraryItem from './BlockLibraryItem.vue';
 
 const activeTab = ref<'blocks' | 'structure'>('blocks');
 const pageBuilder = usePageBuilderStore();
 
 const primitiveBlocks: Array<{
-  type: BlockType;
+  type: Block['type'];
   name: string;
   icon: LucideIcon;
 }> = [
@@ -19,20 +18,19 @@ const primitiveBlocks: Array<{
   { type: 'paragraph', name: 'Paragraph', icon: TextIcon },
 ];
 
-function flattenStructure(blocks: Block[], depth = 0): Array<{ block: Block; depth: number }> {
-  const result: Array<{ block: Block; depth: number }> = [];
-  for (const block of blocks) {
-    result.push({ block, depth });
-    if (block.children?.length) {
-      const childBlocks = block.children.filter((n): n is Block => 'id' in n);
-      result.push(...flattenStructure(childBlocks, depth + 1));
+function flattenStructure(root: Block, depth = 0): Array<{ block: Block; depth: number }> {
+  const result: Array<{ block: Block; depth: number }> = [{block: root, depth}];
+  if(isBlockWithBlockChildren(root)) {
+    for (const block of root.children) {
+      result.push(...flattenStructure(block, depth + 1));
     }
   }
+
   return result;
 }
 
 const structureList = computed(() =>
-  flattenStructure(pageBuilder.structure, 0),
+  pageBuilder.structure ? flattenStructure(pageBuilder.structure, 0) : [],
 );
 
 function onDragStart(e: DragEvent, blockType: string) {

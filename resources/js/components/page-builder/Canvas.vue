@@ -6,6 +6,10 @@ import BlockRenderer from './BlockRenderer.vue';
 const store = usePageBuilderStore();
 const dragCounter = ref(0);
 
+if (!store.structure) {
+    store.setRoot(store.createRootBlock());
+}
+
 function onDragEnter(e: DragEvent) {
     e.preventDefault();
     dragCounter.value++;
@@ -45,8 +49,8 @@ onUnmounted(() => document.removeEventListener('dragend', onDragEnd));
         @dragleave="onDragLeave"
         @drop="onDrop"
     >
-        <div class="min-h-full rounded-lg border bg-white">
-            <BlockRenderer :parent-id="null" empty-zone-fills-parent />
+        <div v-if="store.structure" class="min-h-full rounded-lg border bg-white">
+            <BlockRenderer :parent-id="store.structure.id" empty-zone-fills-parent />
         </div>
     </main>
 </template>

@@ -1,7 +1,10 @@
 <script lang="ts">
-import type { Block } from '@/types';
 import { usePageBuilderStore } from '@/stores/pageBuilder';
-import { type PropType, computed, defineComponent, h } from 'vue';
+import {
+    isBlockWithBlockChildren,
+    type Block
+} from '@/types';
+import { computed, defineComponent, h, type PropType } from 'vue';
 import BlockWrapper from './BlockWrapper.vue';
 import DropZone from './DropZone.vue';
 import Container from './primitive-blocks/Container.vue';
@@ -18,8 +21,8 @@ export default defineComponent({
     name: 'BlockRenderer',
     props: {
         parentId: {
-            type: String as PropType<string | null>,
-            default: null,
+            type: String as PropType<string>,
+            required: true,
         },
         emptyZoneFillsParent: {
             type: Boolean,
@@ -28,12 +31,15 @@ export default defineComponent({
     },
     setup(props) {
         const store = usePageBuilderStore();
-        const childBlocks = computed(() => store.getChildBlocks(props.parentId));
+        const block = computed(() => store.findBlock(props.parentId));
+        const children = computed(() => {
+            const b = block.value;
+            return b && isBlockWithBlockChildren(b) ? b.children : [];
+        });
 
         return () => {
-            const blocks = childBlocks.value;
-            const zonePrefix = props.parentId ?? 'root';
-            const firstDropZoneFillsParent = props.emptyZoneFillsParent && blocks.length === 0;
+            const zonePrefix = props.parentId;
+            const firstDropZoneFillsParent = props.emptyZoneFillsParent && children.value.length === 0;
 
             const nodes: ReturnType<typeof h>[] = [
                 h(DropZone, {
@@ -43,12 +49,12 @@ export default defineComponent({
                 }),
             ];
 
-            blocks.forEach((block: Block, index: number) => {
-                const BlockComponent = blockComponents[block.type];
+            children.value.forEach((child: Block, index: number) => {
+                const BlockComponent = blockComponents[child.type];
                 if (!BlockComponent) return;
 
                 nodes.push(
-                    h(BlockWrapper, { key: block.id, blockId: block.id }, { default: () => h(BlockComponent, { blockId: block.id }) }),
+                    h(BlockWrapper, { key: child.id, blockId: child.id }, { default: () => h(BlockComponent, { blockId: child.id }) }),
                 );
 
                 nodes.push(

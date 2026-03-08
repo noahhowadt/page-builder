@@ -1,33 +1,45 @@
-import type { Block, BlockType, Node } from '@/types';
+import { isBlockWithBlockChildren, isBlockWithTextChildren, TextNode, type Block, type Node } from '@/types';
 import { createId } from '@paralleldrive/cuid2';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 export const usePageBuilderStore = defineStore('pageBuilder', () => {
-    const structure = ref<Block[]>([]);
+    const structure = ref<Block | null>(null);
+
+    function createRootBlock(): Block {
+        return {
+            id: createId(),
+            type: 'root',
+            children: [],
+        };
+    }
+
+    function setRoot(block: Block): void {
+        structure.value = block;
+    }
     const selectedBlockId = ref<string | null>(null);
     const activeDropZoneId = ref<string | null>(null);
     const isDragging = ref(false);
 
     const dropZoneElements = new Map<string, HTMLElement>();
 
-    function findBlock(blockId: string, blocks: Block[] = structure.value): Block | null {
-        for (const block of blocks) {
-            if (block.id === blockId) return block;
-            if (block.children) {
-                const childBlocks = block.children.filter((n): n is Block => 'id' in n);
-                const found = findBlock(blockId, childBlocks);
+    function findBlock(blockId: string, root: Block | null = structure.value): Block | null {
+        if (!root) return null;
+        if (blockId === root.id) return root;
+        if (isBlockWithBlockChildren(root)) {
+            for (const block of root.children) {
+                const found = findBlock(blockId, block);
                 if (found) return found;
             }
         }
+
         return null;
     }
 
-    function getChildBlocks(parentId: string | null): Block[] {
-        if (parentId === null) return structure.value;
+    function getChildBlocks(parentId: string): Array<Node> {
         const parent = findBlock(parentId);
-        if (!parent?.children) return [];
-        return parent.children.filter((n): n is Block => 'id' in n);
+        if (!parent) throw new Error(`Parent block not found: ${parentId}`);
+        return parent.children
     }
 
     function selectBlock(id: string): void {
@@ -38,55 +50,51 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         selectedBlockId.value = null;
     }
 
-    function createBlock(type: BlockType): Block {
-        const children: Node[] =
-            type === 'paragraph'
-                ? [
-                    {
-                        type: 'text' as const,
-                        text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.',
-                    },
-                ]
-                : type === 'heading'
-                    ? [{ type: 'text' as const, text: 'Heading' }]
-                    : [];
-
-        return { id: createId(), type, config: {}, children };
+    function createBlock(type: Block['type']): Block {
+        switch (type) {
+            case 'container':
+                return { id: createId(), type, children: [] };
+            case 'heading':
+                return {
+                    id: createId(), type, config: { level: 1 }, children: [{
+                        type: 'text',
+                        text: 'Heading',
+                    }]
+                };
+            case 'paragraph':
+                return {
+                    id: createId(), type, children: [{
+                        type: 'text',
+                        text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.'
+                    }]
+                };
+            default:
+                throw new Error(`Invalid block type: ${type}`);
+        }
     }
 
-    function insertBlock(parentId: string | null, index: number, type: BlockType): void {
+    function insertBlock(parentId: string, index: number, type: Block['type']): void {
         const newBlock = createBlock(type);
 
-        if (parentId === null) {
-            structure.value.splice(index, 0, newBlock);
-            return;
-        }
-
         const parent = findBlock(parentId);
-        if (!parent) return;
-        if (!parent.children) parent.children = [];
+        if (!parent) throw new Error(`Trying to insert block into non-existent parent: ${parentId}`);
         parent.children.splice(index, 0, newBlock);
     }
 
-    function updateBlockText(blockId: string, newText: string): void {
+    function updateBlockText(blockId: string, newText: Array<TextNode>): void {
         const block = findBlock(blockId);
-        if (!block) return;
+        if (!block) throw new Error(`Block not found: ${blockId}`);
+        if (!isBlockWithTextChildren(block)) throw new Error(`Block is not a text block: ${blockId}`);
 
-        const children = block.children ?? [];
-        const hasTextNode = children.some((n) => n.type === 'text');
-
-        if (hasTextNode) {
-            block.children = children.map((node) => (node.type === 'text' ? { ...node, text: newText } : node));
-        } else {
-            block.children = [...children, { type: 'text' as const, text: newText }];
-        }
+        block.children = newText;
     }
 
     function parseZoneId(zoneId: string): { parentId: string | null; index: number } {
+        console.log('parseZoneId', zoneId);
         const colonIndex = zoneId.lastIndexOf(':');
         const parentPart = zoneId.substring(0, colonIndex);
         return {
-            parentId: parentPart === 'root' ? null : parentPart,
+            parentId: parentPart,
             index: parseInt(zoneId.substring(colonIndex + 1), 10),
         };
     }
@@ -94,10 +102,13 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
     function dropAtActiveZone(e: DragEvent): void {
         if (!activeDropZoneId.value || !e.dataTransfer) return;
 
-        const type = e.dataTransfer.getData('application/x-block-type') as BlockType;
+        const type = e.dataTransfer.getData('application/x-block-type') as Block['type'];
         if (!type) return;
 
         const { parentId, index } = parseZoneId(activeDropZoneId.value);
+        if (!parentId) throw new Error(`Trying to drop at root, but block is not a root: ${activeDropZoneId.value}`);
+        console.log('dropAtActiveZone', parentId, index, type);
+
         insertBlock(parentId, index, type);
         endDrag();
     }
@@ -140,6 +151,8 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
 
     return {
         structure,
+        createRootBlock,
+        setRoot,
         selectedBlockId,
         activeDropZoneId,
         isDragging,
