@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { BlockType } from '@/types';
+import { Block } from '@/types';
 import type { LucideIcon } from 'lucide-vue-next';
 
 const props = defineProps<{
   block: {
-    type: BlockType;
+    type: Block['type'];
     name: string;
     icon: LucideIcon;
   };
@@ -28,10 +28,10 @@ function onDragStart(e: DragEvent) {
     @dragstart="onDragStart"
   >
     <span
-      class="flex size-8 shrink-0 items-center justify-center rounded bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+      class="flex size-4 shrink-0 items-center justify-center rounded bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
     >
-      <component :is="block.icon" class="size-4" stroke-width="1.5" />
+      <component :is="block.icon" class="size-3" stroke-width="1.5" />
     </span>
-    <span class="truncate font-medium">{{ block.name }}</span>
+    <span class="truncate font-medium text-xs">{{ block.name }}</span>
   </div>
 </template>

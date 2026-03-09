@@ -23,7 +23,7 @@ function onDblclick(e: MouseEvent) {
 }
 
 function onUpdateText(text: string) {
-    store.updateBlockText(props.blockId, text);
+    store.updateBlockText(props.blockId, [{ type: 'text', text }]);
 }
 </script>
 

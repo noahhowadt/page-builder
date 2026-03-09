@@ -1,4 +1,12 @@
-import { isBlockWithBlockChildren, isBlockWithTextChildren, TextNode, type Block, type Node } from '@/types';
+import {
+    type ContainerBlock,
+    type HeadingBlock,
+    isBlockWithBlockChildren,
+    isBlockWithTextChildren,
+    TextNode,
+    type Block,
+    type Node,
+} from '@/types';
 import { createId } from '@paralleldrive/cuid2';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
@@ -53,7 +61,7 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
     function createBlock(type: Block['type']): Block {
         switch (type) {
             case 'container':
-                return { id: createId(), type, children: [] };
+                return { id: createId(), type, config: { direction: 'column', gap: 0, padding: 20 }, children: [] };
             case 'heading':
                 return {
                     id: createId(), type, config: { level: 1 }, children: [{
@@ -87,6 +95,15 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         if (!isBlockWithTextChildren(block)) throw new Error(`Block is not a text block: ${blockId}`);
 
         block.children = newText;
+    }
+
+    function updateBlockConfig(
+        blockId: string,
+        updates: Partial<ContainerBlock['config']> | Partial<HeadingBlock['config']>,
+    ): void {
+        const block = findBlock(blockId);
+        if (!block || !('config' in block)) return;
+        Object.assign(block.config, updates);
     }
 
     function parseZoneId(zoneId: string): { parentId: string | null; index: number } {
@@ -130,6 +147,28 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         activeDropZoneId.value = null;
     }
 
+    function findParent(blockId: string, root: Block | null = structure.value): { parent: Block; index: number } | null {
+        if (!root || !isBlockWithBlockChildren(root)) return null;
+        const children = root.children;
+        for (let i = 0; i < children.length; i++) {
+            if (children[i].id === blockId) return { parent: root, index: i };
+            const found = findParent(blockId, children[i]);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    function deleteBlock(blockId: string): boolean {
+        if (blockId === structure.value?.id) return false;
+        const found = findParent(blockId);
+        if (!found) return false;
+        const { parent, index } = found;
+        if (!isBlockWithBlockChildren(parent)) return false;
+        parent.children.splice(index, 1);
+        if (selectedBlockId.value === blockId) selectedBlockId.value = null;
+        return true;
+    }
+
     function updateClosestDropZone(mouseX: number, mouseY: number): void {
         let closestId: string | null = null;
         let closestDistance = Infinity;
@@ -160,8 +199,10 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         getChildBlocks,
         selectBlock,
         clearSelection,
+        deleteBlock,
         insertBlock,
         updateBlockText,
+        updateBlockConfig,
         dropAtActiveZone,
         registerDropZone,
         unregisterDropZone,

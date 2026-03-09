@@ -24,10 +24,6 @@ export default defineComponent({
             type: String as PropType<string>,
             required: true,
         },
-        emptyZoneFillsParent: {
-            type: Boolean,
-            default: false,
-        },
     },
     setup(props) {
         const store = usePageBuilderStore();
@@ -39,13 +35,11 @@ export default defineComponent({
 
         return () => {
             const zonePrefix = props.parentId;
-            const firstDropZoneFillsParent = props.emptyZoneFillsParent && children.value.length === 0;
 
             const nodes: ReturnType<typeof h>[] = [
                 h(DropZone, {
                     key: 'drop-0',
                     zoneId: `${zonePrefix}:0`,
-                    fillsParent: firstDropZoneFillsParent,
                 }),
             ];
 

@@ -22,6 +22,7 @@ Route::prefix('admin')
         Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
         Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
         Route::get('/pages/{page}/edit', [PageController::class, 'edit'])->name('pages.edit');
+        Route::put('/pages/{page}', [PageController::class, 'update'])->name('pages.update');
     });
 
 require __DIR__.'/settings.php';

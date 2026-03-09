@@ -9,6 +9,7 @@ class Page extends Model
     protected $fillable = [
         'title',
         'slug',
+        'structure',
     ];
 
     protected $casts = [

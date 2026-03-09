@@ -24,6 +24,11 @@ export interface RootBlock {
 export interface ContainerBlock {
   id: string;
   type: 'container';
+  config: {
+    direction: 'column' | 'row';
+    gap: number;
+    padding: number;
+  }
   children: Array<Block>;
 }
 
@@ -63,3 +68,17 @@ export function isBlockWithTextChildren(
 ): block is BlockWithTextChildren {
   return block.type === 'heading' || block.type === 'paragraph';
 }
+
+export function isContainerBlock(block: Block): block is ContainerBlock {
+  return block.type === 'container';
+}
+
+export function isHeadingBlock(block: Block): block is HeadingBlock {
+  return block.type === 'heading';
+}
+
+export function isParagraphBlock(block: Block): block is ParagraphBlock {
+  return block.type === 'paragraph';
+}
+
+

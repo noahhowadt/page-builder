@@ -58,15 +58,25 @@ class PageController extends Controller
     {
         return Inertia::render('pages/Edit', [
             'page' => $page,
+            'structure' => $page->structure,
+            'updateUrl' => route('pages.update', $page),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Page $page)
+    public function update(Request $request, Page $page): RedirectResponse
     {
-        //
+        $request->validate([
+            'structure' => ['required', 'array'],
+        ]);
+
+        $page->update([
+            'structure' => $request->input('structure'),
+        ]);
+
+        return back();
     }
 
     /**

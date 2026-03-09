@@ -10,6 +10,10 @@ const props = defineProps<{
 const store = usePageBuilderStore();
 
 const block = computed(() => store.findBlock(props.blockId));
+const level = computed(() => {
+  const b = block.value;
+  return b?.type === 'heading' ? b.config.level : 1;
+});
 const displayText = computed(() => {
     const textNode = block.value?.children?.find((n) => n.type === 'text');
     return textNode?.type === 'text' ? textNode.text : '';
@@ -23,12 +27,24 @@ function onDblclick(e: MouseEvent) {
 }
 
 function onUpdateText(text: string) {
-    store.updateBlockText(props.blockId, text);
+    store.updateBlockText(props.blockId, [{ type: 'text', text }]);
 }
 </script>
 
 <template>
-    <h2 class="min-h-[1.5em] cursor-default text-2xl font-bold" @dblclick="onDblclick">
+    <component
+        :is="`h${level}`"
+        class="min-h-[1.5em] cursor-default font-bold"
+        :class="{
+            'text-4xl': level === 1,
+            'text-2xl': level === 2,
+            'text-xl': level === 3,
+            'text-lg': level === 4,
+            'text-base': level === 5,
+            'text-sm': level === 6,
+        }"
+        @dblclick="onDblclick"
+    >
         <Text ref="textRef" :text="displayText" :on-update-text="onUpdateText" />
-    </h2>
+    </component>
 </template>

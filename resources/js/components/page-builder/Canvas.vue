@@ -37,8 +37,23 @@ function onDragEnd() {
     store.endDrag();
 }
 
-onMounted(() => document.addEventListener('dragend', onDragEnd));
-onUnmounted(() => document.removeEventListener('dragend', onDragEnd));
+function onKeyDown(e: KeyboardEvent) {
+    if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+    const target = e.target as HTMLElement;
+    if (target.closest('input, textarea, [contenteditable="true"]')) return;
+    if (!store.selectedBlockId) return;
+    e.preventDefault();
+    store.deleteBlock(store.selectedBlockId);
+}
+
+onMounted(() => {
+    document.addEventListener('dragend', onDragEnd);
+    document.addEventListener('keydown', onKeyDown);
+});
+onUnmounted(() => {
+    document.removeEventListener('dragend', onDragEnd);
+    document.removeEventListener('keydown', onKeyDown);
+});
 </script>
 
 <template>
