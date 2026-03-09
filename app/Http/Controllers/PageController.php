@@ -15,7 +15,7 @@ class PageController extends Controller
      */
     public function index()
     {
-        $pages = Page::all();
+        $pages = Page::query()->orderBy('id', 'asc')->get();
 
         return Inertia::render('pages/Index', [
             'pages' => $pages,
