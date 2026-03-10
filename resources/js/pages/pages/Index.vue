@@ -2,6 +2,7 @@
 import PageController from '@/actions/App/Http/Controllers/PageController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import Checkbox from '@/components/ui/checkbox/Checkbox.vue';
 import {
   Dialog,
   DialogContent,
@@ -17,9 +18,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import type { Page } from '@/types/pages';
-import { Link, useForm } from '@inertiajs/vue3';
-import { FileText, Plus } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { Link, router, useForm } from '@inertiajs/vue3';
+import { FileText, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 defineProps<{
   pages: Array<Page>;
@@ -32,21 +33,79 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ];
 
-const modalOpen = ref(false);
+const createModalOpen = ref(false);
+const editModalOpen = ref(false);
+const deleteConfirmOpen = ref(false);
+const editingPage = ref<Page | null>(null);
+const pageToDelete = ref<Page | null>(null);
 
 const form = useForm({
   title: '',
   slug: ''
 });
 
+const editForm = useForm({
+  title: '',
+  slug: '',
+  is_published: false
+});
+
 const submit = () => {
   form.post(PageController.store.url(), {
     onSuccess: () => {
-      modalOpen.value = false;
+      createModalOpen.value = false;
       form.reset();
     }
   });
 };
+
+function openEditDialog(page: Page) {
+  editingPage.value = page;
+  editForm.reset();
+  editForm.title = page.title;
+  editForm.slug = page.slug.startsWith('/') ? page.slug : `/${page.slug}`;
+  editForm.is_published = page.is_published;
+  editModalOpen.value = true;
+}
+
+function closeEditDialog() {
+  editModalOpen.value = false;
+  editingPage.value = null;
+}
+
+const submitEdit = () => {
+  if (!editingPage.value) return;
+  editForm.put(PageController.update.url({ page: editingPage.value.id }), {
+    onSuccess: () => {
+      closeEditDialog();
+    }
+  });
+};
+
+const editDialogTitle = computed(() =>
+  editingPage.value ? `Edit "${editingPage.value.title}"` : 'Edit page'
+);
+
+function openDeleteConfirm(page: Page) {
+  pageToDelete.value = page;
+  deleteConfirmOpen.value = true;
+}
+
+function closeDeleteConfirm() {
+  deleteConfirmOpen.value = false;
+  pageToDelete.value = null;
+}
+
+function confirmDelete() {
+  if (!pageToDelete.value) return;
+  router.delete(PageController.destroy.url({ page: pageToDelete.value.id }), {
+    onSuccess: () => closeDeleteConfirm()
+  });
+}
+
+const deleteConfirmTitle = computed(() =>
+  pageToDelete.value ? `Delete "${pageToDelete.value.title}"?` : 'Delete page?'
+);
 </script>
 
 <template>
@@ -54,7 +113,7 @@ const submit = () => {
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-semibold tracking-tight">Pages</h1>
-        <Dialog v-model:open="modalOpen">
+        <Dialog v-model:open="createModalOpen">
           <DialogTrigger as-child>
             <Button>
               <Plus class="size-4" />
@@ -98,7 +157,7 @@ const submit = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  @click="modalOpen = false"
+                  @click="createModalOpen = false"
                 >
                   Cancel
                 </Button>
@@ -107,6 +166,97 @@ const submit = () => {
                 </Button>
               </DialogFooter>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        <!-- Edit page dialog -->
+        <Dialog v-model:open="editModalOpen">
+          <DialogContent class="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{{ editDialogTitle }}</DialogTitle>
+              <DialogDescription>
+                Update title, URL slug, and published status. Published at is set automatically when you publish.
+              </DialogDescription>
+            </DialogHeader>
+            <form @submit.prevent="submitEdit" class="space-y-4 pt-2">
+              <div class="grid gap-2">
+                <Label for="edit-title">Title</Label>
+                <Input
+                  id="edit-title"
+                  v-model="editForm.title"
+                  type="text"
+                  placeholder="Page title"
+                  required
+                  autocomplete="off"
+                />
+                <InputError :message="editForm.errors.title" />
+              </div>
+              <div class="grid gap-2">
+                <Label for="edit-slug">URL slug</Label>
+                <Input
+                  id="edit-slug"
+                  v-model="editForm.slug"
+                  type="text"
+                  placeholder="/path/to/page"
+                  required
+                  autocomplete="off"
+                  class="font-mono"
+                />
+                <InputError :message="editForm.errors.slug" />
+              </div>
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  id="edit-published"
+                  v-model="editForm.is_published"
+                  type="checkbox"
+                  class="size-4 rounded border-neutral-300 text-primary focus:ring-primary dark:border-neutral-600 dark:bg-neutral-800"
+                />
+                <Label for="edit-published" class="cursor-pointer font-normal">
+                  Published
+                </Label>
+              </div>
+              <InputError :message="editForm.errors.is_published" />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  @click="closeEditDialog"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" :disabled="editForm.processing">
+                  Save changes
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <!-- Delete confirmation dialog -->
+        <Dialog v-model:open="deleteConfirmOpen">
+          <DialogContent class="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{{ deleteConfirmTitle }}</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. The page and its content will be permanently removed.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter class="gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                @click="closeDeleteConfirm"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                @click="confirmDelete"
+              >
+                Delete page
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
@@ -173,6 +323,9 @@ const submit = () => {
               >
                 Created at
               </th>
+              <th scope="col" class="relative px-5 py-3.5 w-10">
+                <span class="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -212,6 +365,30 @@ const submit = () => {
               </td>
               <td class="whitespace-nowrap px-5 py-4 text-sm text-neutral-600 dark:text-neutral-400">
                 {{ new Date(page.created_at).toLocaleString() }}
+              </td>
+              <td class="whitespace-nowrap px-5 py-4 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    class="size-8 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+                    :aria-label="`Edit ${page.title}`"
+                    @click="openEditDialog(page)"
+                  >
+                    <Pencil class="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    class="size-8 text-neutral-500 hover:text-destructive dark:text-neutral-400 dark:hover:text-destructive"
+                    :aria-label="`Delete ${page.title}`"
+                    @click="openDeleteConfirm(page)"
+                  >
+                    <Trash2 class="size-4" />
+                  </Button>
+                </div>
               </td>
             </tr>
           </tbody>

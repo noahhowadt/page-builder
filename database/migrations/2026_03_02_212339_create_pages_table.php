@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->boolean('is_published')->default(false);
             $table->timestamp('published_at')->nullable();
-            $table->json('structure')->default('[]');
+            $table->json('structure');
             $table->timestamps();
         });
     }

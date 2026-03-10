@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9b57298dd394b4af3452cc4cc5e1a625",
+    "content-hash": "6e13174b1a88450461c4d786bfd086ce",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -6318,6 +6318,76 @@
                 "source": "https://github.com/tijsverkoyen/CssToInlineStyles/tree/v2.4.0"
             },
             "time": "2025-12-02T11:56:42+00:00"
+        },
+        {
+            "name": "visus/cuid2",
+            "version": "6.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/visus-io/php-cuid2.git",
+                "reference": "834c8a1c04684931600ee7a4189150b331a5b56c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/visus-io/php-cuid2/zipball/834c8a1c04684931600ee7a4189150b331a5b56c",
+                "reference": "834c8a1c04684931600ee7a4189150b331a5b56c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2",
+                "symfony/polyfill-php83": "^1.32"
+            },
+            "require-dev": {
+                "captainhook/captainhook": "^5.27",
+                "captainhook/hook-installer": "^1.0",
+                "captainhook/plugin-composer": "^5.3",
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
+                "ergebnis/composer-normalize": "^2.29",
+                "php-parallel-lint/php-parallel-lint": "^1.4",
+                "phpbench/phpbench": "^1.4",
+                "phpstan/phpstan": "^1.9",
+                "phpunit/phpunit": "^10.5",
+                "ramsey/conventional-commits": "^1.5",
+                "slevomat/coding-standard": "^8.25",
+                "squizlabs/php_codesniffer": "^4.0"
+            },
+            "suggest": {
+                "ext-gmp": "Enables faster math with arbitrary precision integers using GMP."
+            },
+            "type": "library",
+            "extra": {
+                "captainhook": {
+                    "force-install": true
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/compat.php"
+                ],
+                "psr-4": {
+                    "Visus\\Cuid2\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alan Brault",
+                    "email": "alan.brault@visus.io"
+                }
+            ],
+            "description": "A PHP library for generating collision-resistant ids (CUIDs).",
+            "keywords": [
+                "cuid",
+                "identifier"
+            ],
+            "support": {
+                "issues": "https://github.com/visus-io/php-cuid2/issues",
+                "source": "https://github.com/visus-io/php-cuid2/tree/6.0.0"
+            },
+            "time": "2025-12-18T14:52:27+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

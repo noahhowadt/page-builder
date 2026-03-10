@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePageRequest;
+use App\Http\Requests\UpdatePageRequest;
 use App\Models\Page;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -66,15 +66,26 @@ class PageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Page $page): RedirectResponse
+    public function update(UpdatePageRequest $request, Page $page): RedirectResponse
     {
-        $request->validate([
-            'structure' => ['required', 'array'],
-        ]);
+        $data = [];
 
-        $page->update([
-            'structure' => $request->input('structure'),
-        ]);
+        if ($request->has('title')) {
+            $data['title'] = $request->validated('title');
+        }
+        if ($request->has('slug')) {
+            $data['slug'] = $request->validated('slug');
+        }
+        if ($request->has('is_published')) {
+            $isPublished = $request->boolean('is_published');
+            $data['is_published'] = $isPublished;
+            $data['published_at'] = $isPublished ? now() : null;
+        }
+        if ($request->has('structure')) {
+            $data['structure'] = $request->validated('structure');
+        }
+
+        $page->update($data);
 
         return back();
     }
@@ -82,8 +93,10 @@ class PageController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Page $page)
+    public function destroy(Page $page): RedirectResponse
     {
-        //
+        $page->delete();
+
+        return redirect()->route('pages.index');
     }
 }
