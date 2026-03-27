@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePageBuilderStore } from '@/stores/pageBuilder';
+import { HeadingBlock } from '@/types';
 import { computed, ref } from 'vue';
 import Text from './Text.vue';
 
@@ -9,14 +10,9 @@ const props = defineProps<{
 
 const store = usePageBuilderStore();
 
-const block = computed(() => store.findBlock(props.blockId));
+const block = computed(() => store.findBlock(props.blockId) as HeadingBlock | null);
 const level = computed(() => {
-  const b = block.value;
-  return b?.type === 'heading' ? b.config.level : 1;
-});
-const displayText = computed(() => {
-    const textNode = block.value?.children?.find((n) => n.type === 'text');
-    return textNode?.type === 'text' ? textNode.text : '';
+  return block.value?.config.level
 });
 
 const textRef = ref<{ startEditing: (e?: MouseEvent) => void } | null>(null);
@@ -27,7 +23,7 @@ function onDblclick(e: MouseEvent) {
 }
 
 function onUpdateText(text: string) {
-    store.updateBlockText(props.blockId, [{ type: 'text', text }]);
+    store.updateBlockContent(props.blockId, [{ type: 'text', text }]);
 }
 </script>
 
@@ -45,6 +41,6 @@ function onUpdateText(text: string) {
         }"
         @dblclick="onDblclick"
     >
-        <Text ref="textRef" :text="displayText" :on-update-text="onUpdateText" />
+        <Text ref="textRef" :content="block?.content" :on-update-text="onUpdateText" />
     </component>
 </template>

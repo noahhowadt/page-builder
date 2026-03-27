@@ -6,10 +6,6 @@ import BlockRenderer from './BlockRenderer.vue';
 const store = usePageBuilderStore();
 const dragCounter = ref(0);
 
-if (!store.structure) {
-    store.setRoot(store.createRootBlock());
-}
-
 function onDragEnter(e: DragEvent) {
     e.preventDefault();
     dragCounter.value++;

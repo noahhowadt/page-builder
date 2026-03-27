@@ -1,11 +1,11 @@
 import {
+    type Block,
     type ContainerBlock,
     type HeadingBlock,
     isBlockWithBlockChildren,
     isBlockWithTextChildren,
-    TextNode,
-    type Block,
-    type Node,
+    ParagraphBlock,
+    TextNode
 } from '@/types';
 import { createId } from '@paralleldrive/cuid2';
 import { defineStore } from 'pinia';
@@ -13,14 +13,6 @@ import { ref } from 'vue';
 
 export const usePageBuilderStore = defineStore('pageBuilder', () => {
     const structure = ref<Block | null>(null);
-
-    function createRootBlock(): Block {
-        return {
-            id: createId(),
-            type: 'root',
-            children: [],
-        };
-    }
 
     function setRoot(block: Block): void {
         structure.value = block;
@@ -44,10 +36,10 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         return null;
     }
 
-    function getChildBlocks(parentId: string): Array<Node> {
+    function getChildBlocks(parentId: string): Array<Block> {
         const parent = findBlock(parentId);
         if (!parent) throw new Error(`Parent block not found: ${parentId}`);
-        return parent.children
+        return isBlockWithBlockChildren(parent) ? parent.children : [];
     }
 
     function selectBlock(id: string): void {
@@ -64,18 +56,18 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
                 return { id: createId(), type, config: { direction: 'column', gap: 0, padding: 20 }, children: [] };
             case 'heading':
                 return {
-                    id: createId(), type, config: { level: 1 }, children: [{
+                    id: createId(), type, config: { level: 1 }, content: [{
                         type: 'text',
                         text: 'Heading',
                     }]
-                };
+                } as HeadingBlock;
             case 'paragraph':
                 return {
-                    id: createId(), type, children: [{
+                    id: createId(), type, config: { level: 1 }, content: [{
                         type: 'text',
                         text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.'
                     }]
-                };
+                } as ParagraphBlock;
             default:
                 throw new Error(`Invalid block type: ${type}`);
         }
@@ -86,15 +78,16 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
 
         const parent = findBlock(parentId);
         if (!parent) throw new Error(`Trying to insert block into non-existent parent: ${parentId}`);
+        if (!isBlockWithBlockChildren(parent)) throw new Error(`Parent block is not a container block: ${parentId}`);
         parent.children.splice(index, 0, newBlock);
     }
 
-    function updateBlockText(blockId: string, newText: Array<TextNode>): void {
+    function updateBlockContent(blockId: string, newContent: Array<TextNode>): void {
         const block = findBlock(blockId);
         if (!block) throw new Error(`Block not found: ${blockId}`);
         if (!isBlockWithTextChildren(block)) throw new Error(`Block is not a text block: ${blockId}`);
 
-        block.children = newText;
+        block.content = newContent;
     }
 
     function updateBlockConfig(
@@ -190,7 +183,6 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
 
     return {
         structure,
-        createRootBlock,
         setRoot,
         selectedBlockId,
         activeDropZoneId,
@@ -201,7 +193,7 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         clearSelection,
         deleteBlock,
         insertBlock,
-        updateBlockText,
+        updateBlockContent,
         updateBlockConfig,
         dropAtActiveZone,
         registerDropZone,

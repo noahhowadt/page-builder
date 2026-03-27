@@ -15,7 +15,7 @@ class Link extends Component
 
         $output = "<a href=\"{$href}\" target=\"{$target}\">";
 
-        foreach ($this->node['children'] ?? [] as $child) {
+        foreach (($this->node['content'] ?? $this->node['children'] ?? []) as $child) {
             $componentName = 'App\\View\\Components\\'.ucfirst($child['type']);
             if (class_exists($componentName)) {
                 $component = new $componentName($child);

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { TextNode } from '@/types';
 import type { PropType } from 'vue';
 import {
   createTextVNode,
@@ -12,7 +13,7 @@ import {
 export default defineComponent({
   name: 'Text',
   props: {
-    text: { type: String, default: '' },
+    content: { type: Array as PropType<Array<TextNode>>, default: () => [] },
     onUpdateText: { type: Function as PropType<(text: string) => void> }
   },
   setup(props, { expose }) {
@@ -33,11 +34,11 @@ export default defineComponent({
     }
 
     function startEditing(e?: MouseEvent) {
-      editText.value = props.text;
+      editText.value = props.content[0].text;
       isEditing.value = true;
       if (e) {
         const offset = getCaretOffsetFromPoint(e.clientX, e.clientY);
-        const len = props.text.length;
+        const len = props.content[0].text.length;
         initialCursorOffset.value =
           offset !== null ? Math.min(Math.max(0, offset), len) : len;
       } else {
@@ -75,7 +76,7 @@ export default defineComponent({
       if (editing) nextTick(fitTextareaHeight);
     });
     watch(
-      () => props.text,
+      () => props.content[0].text,
       (val) => {
         if (!isEditing.value) editText.value = val;
       }
@@ -85,7 +86,7 @@ export default defineComponent({
 
     return () => {
       if (!isEditing.value) {
-        return createTextVNode(props.text || ' ');
+        return createTextVNode(props.content[0].text || ' ');
       }
       return h('textarea', {
         ref: textareaRef,

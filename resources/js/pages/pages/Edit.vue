@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import Canvas from '@/components/page-builder/Canvas.vue';
 import Sidebar from '@/components/page-builder/Sidebar.vue';
-import type { Page } from '@/types';
-import type { Block } from '@/types';
 import { usePageBuilderStore } from '@/stores/pageBuilder';
+import type { Block, Page, RootBlock } from '@/types';
 import { router } from '@inertiajs/vue3';
 import { onBeforeMount, watch } from 'vue';
 
@@ -16,11 +15,7 @@ const props = defineProps<{
 const store = usePageBuilderStore();
 
 function initStructure() {
-    if (props.structure && props.structure.type === 'root') {
-        store.setRoot(props.structure);
-    } else {
-        store.setRoot(store.createRootBlock());
-    }
+    store.setRoot(props.structure as RootBlock);
 }
 
 onBeforeMount(initStructure);

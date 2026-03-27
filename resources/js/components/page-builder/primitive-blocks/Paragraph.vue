@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePageBuilderStore } from '@/stores/pageBuilder';
+import { ParagraphBlock } from '@/types';
 import { computed, ref } from 'vue';
 import Text from './Text.vue';
 
@@ -9,11 +10,7 @@ const props = defineProps<{
 
 const store = usePageBuilderStore();
 
-const block = computed(() => store.findBlock(props.blockId));
-const displayText = computed(() => {
-    const textNode = block.value?.children?.find((n) => n.type === 'text');
-    return textNode?.type === 'text' ? textNode.text : '';
-});
+const block = computed(() => store.findBlock(props.blockId) as ParagraphBlock | null);
 
 const textRef = ref<{ startEditing: (e?: MouseEvent) => void } | null>(null);
 
@@ -23,12 +20,12 @@ function onDblclick(e: MouseEvent) {
 }
 
 function onUpdateText(text: string) {
-    store.updateBlockText(props.blockId, [{ type: 'text', text }]);
+    store.updateBlockContent(props.blockId, [{ type: 'text', text }]);
 }
 </script>
 
 <template>
     <p class="min-h-[1.5em] cursor-default" @dblclick="onDblclick">
-        <Text ref="textRef" :text="displayText" :on-update-text="onUpdateText" />
+        <Text ref="textRef" :content="block?.content" :on-update-text="onUpdateText" />
     </p>
 </template>

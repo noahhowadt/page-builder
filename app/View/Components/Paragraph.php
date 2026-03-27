@@ -12,7 +12,7 @@ class Paragraph extends Component
     {
         $output = '<p style="min-height: 1.5em;">';
 
-        foreach ($this->block['children'] ?? [] as $child) {
+        foreach (($this->block['content'] ?? $this->block['children'] ?? []) as $child) {
             $type = $child['type'] ?? 'text';
             $componentName = 'App\\View\\Components\\'.ucfirst($type);
             if (class_exists($componentName)) {

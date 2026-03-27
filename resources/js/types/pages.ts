@@ -38,13 +38,13 @@ export interface HeadingBlock {
   config: {
     level: 1 | 2 | 3 | 4 | 5 | 6;
   };
-  children: Array<TextNode>;
+  content: Array<TextNode>;
 }
 
 export interface ParagraphBlock {
   id: string;
   type: 'paragraph';
-  children: Array<TextNode>;
+  content: Array<TextNode>;
 }
 
 export type Block = RootBlock | ContainerBlock | HeadingBlock | ParagraphBlock;
@@ -52,7 +52,7 @@ export type Block = RootBlock | ContainerBlock | HeadingBlock | ParagraphBlock;
 /** Blocks that may only have other blocks as children (e.g. root, container). */
 export type BlockWithBlockChildren = RootBlock | ContainerBlock;
 
-/** Blocks that may only have text/inline nodes as children (e.g. heading, paragraph). */
+/** Blocks that may only have text/inline nodes as content (e.g. heading, paragraph). */
 export type BlockWithTextChildren = HeadingBlock | ParagraphBlock;
 
 export type Node = TextNode | Block;
