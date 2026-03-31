@@ -1,16 +1,22 @@
 <script setup lang="ts">
+import { router } from '@inertiajs/vue3';
+import { computed, onBeforeMount, provide, watch } from 'vue';
 import Canvas from '@/components/page-builder/Canvas.vue';
 import Sidebar from '@/components/page-builder/Sidebar.vue';
 import { usePageBuilderStore } from '@/stores/pageBuilder';
-import type { Block, Page, RootBlock } from '@/types';
-import { router } from '@inertiajs/vue3';
-import { onBeforeMount, watch } from 'vue';
+import type { Block, LinkablePage, Page, RootBlock } from '@/types';
 
 const props = defineProps<{
     page: Page;
     structure: Block | null;
     updateUrl: string;
+    linkablePages: LinkablePage[];
 }>();
+
+provide(
+    'linkablePages',
+    computed(() => props.linkablePages),
+);
 
 const store = usePageBuilderStore();
 

@@ -33,8 +33,16 @@
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
+        "@floating-ui/dom": "^1.7.6",
         "@inertiajs/vue3": "^2.3.7",
         "@paralleldrive/cuid2": "^3.3.0",
+        "@tiptap/core": "^3.21.0",
+        "@tiptap/extension-bubble-menu": "^3.21.0",
+        "@tiptap/extension-link": "^3.21.0",
+        "@tiptap/extension-underline": "^3.21.0",
+        "@tiptap/pm": "^3.21.0",
+        "@tiptap/starter-kit": "^3.21.0",
+        "@tiptap/vue-3": "^3.21.0",
         "@vueuse/core": "^12.8.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",

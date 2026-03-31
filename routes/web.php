@@ -4,7 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SetupController;
 use App\Models\Page;
-use Illuminate\Support\Facades\Log;
+use App\Support\PageStructureLinkResolver;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->middleware(['guest', 'setup.access'])->group(function () {
@@ -31,14 +31,18 @@ Route::prefix('admin')
 require __DIR__.'/settings.php';
 
 Route::get('{slug?}', function ($slug = '') {
-    Log::info('slug', ['slug' => $slug]);
     $page = Page::where('slug', '/'.$slug)
         ->where('is_published', true)
         ->first();
 
-    if (!$page) {
+    if (! $page) {
         abort(404);
     }
 
-    return view('page', ['page' => $page]);
+    $structure = PageStructureLinkResolver::resolve($page->structure ?? []);
+
+    return view('page', [
+        'page' => $page,
+        'structure' => $structure,
+    ]);
 })->where('slug', '.*');

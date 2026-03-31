@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { usePageBuilderStore } from '@/stores/pageBuilder';
-import { HeadingBlock } from '@/types';
 import { computed, ref } from 'vue';
+import { usePageBuilderStore } from '@/stores/pageBuilder';
+import type { HeadingBlock, TextNode } from '@/types';
 import Text from './Text.vue';
 
 const props = defineProps<{
@@ -22,8 +22,8 @@ function onDblclick(e: MouseEvent) {
     textRef.value?.startEditing(e);
 }
 
-function onUpdateText(text: string) {
-    store.updateBlockContent(props.blockId, [{ type: 'text', text }]);
+function onUpdateContent(content: TextNode[]) {
+    store.updateBlockContent(props.blockId, content);
 }
 </script>
 
@@ -41,6 +41,6 @@ function onUpdateText(text: string) {
         }"
         @dblclick="onDblclick"
     >
-        <Text ref="textRef" :content="block?.content" :on-update-text="onUpdateText" />
+        <Text ref="textRef" :content="block?.content" :on-update-content="onUpdateContent" />
     </component>
 </template>

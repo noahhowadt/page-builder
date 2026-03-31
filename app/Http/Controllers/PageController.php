@@ -6,6 +6,7 @@ use App\Http\Requests\StorePageRequest;
 use App\Http\Requests\UpdatePageRequest;
 use App\Models\Page;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -60,6 +61,12 @@ class PageController extends Controller
             'page' => $page,
             'structure' => $page->structure,
             'updateUrl' => route('pages.update', $page),
+            'linkablePages' => Page::query()
+                ->orderBy('title')
+                ->get(['id', 'title'])
+                ->map(fn (Page $p): array => ['id' => $p->id, 'title' => $p->title])
+                ->values()
+                ->all(),
         ]);
     }
 
@@ -82,6 +89,7 @@ class PageController extends Controller
             $data['published_at'] = $isPublished ? now() : null;
         }
         if ($request->has('structure')) {
+            Log::info('structure', ['structure' => $request->getContent()]);
             $data['structure'] = $request->validated('structure');
         }
 

@@ -1,5 +1,5 @@
 @php
-    $root = $page->structure;
+    $root = $structure ?? $page->structure;
     $blocks = ($root['type'] ?? null) === 'root'
         ? ($root['children'] ?? [])
         : (is_array($root) && array_is_list($root) ? $root : [$root]);

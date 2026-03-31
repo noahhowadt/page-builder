@@ -9,10 +9,26 @@ export interface Page {
 }
 
 export type TextMark = 'bold' | 'italic' | 'underline';
+
+/** Minimal page row for link picker UI (full `Page` is optional on the editor screen). */
+export interface LinkablePage {
+  id: number;
+  title: string;
+}
+
+/**
+ * `url` = external http(s)/mailto, or same-site path (e.g. `/about`) populated when serving published pages.
+ * `pageId` = site page target; kept when saving; server resolves `url` from the page slug for public HTML.
+ * Prefer only one of `url` or `pageId` when saving in the editor.
+ */
 export interface TextNode {
   type: 'text';
   text: string;
   marks?: Array<TextMark>;
+  link?: {
+    url?: string;
+    pageId?: number;
+  };
 }
 
 export interface RootBlock {
