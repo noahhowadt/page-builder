@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Component;
 use App\Models\Page;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -275,4 +277,26 @@ test('guests cannot delete a page', function () {
 
     $response->assertRedirect(route('login'));
     expect(Page::query()->find($page->id))->not->toBeNull();
+});
+
+test('page editor includes library components for sidebar', function () {
+    /** @var TestCase $this */
+    /** @var User $user */
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Component::factory()->create(['name' => 'Hero']);
+
+    $page = Page::query()->create([
+        'title' => 'About',
+        'slug' => '/about',
+    ]);
+
+    $response = $this->get(route('pages.edit', $page));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('pages/Edit')
+        ->has('libraryComponents', 1)
+        ->where('libraryComponents.0.name', 'Hero'));
 });

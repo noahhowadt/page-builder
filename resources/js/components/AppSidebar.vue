@@ -13,10 +13,11 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import components from '@/routes/components';
 import pages from '@/routes/pages';
 import type { NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FileText, FolderGit2, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, FileText, FolderGit2, LayoutGrid, Puzzle } from 'lucide-vue-next';
 
 const mainNavItems: NavItem[] = [
     {
@@ -28,6 +29,11 @@ const mainNavItems: NavItem[] = [
         title: 'Pages',
         href: pages.index(),
         icon: FileText,
+    },
+    {
+        title: 'Components',
+        href: components.index(),
+        icon: Puzzle,
     },
 ];
 

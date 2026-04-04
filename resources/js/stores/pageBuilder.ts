@@ -1,7 +1,9 @@
+import type { LibraryComponent } from '@/types/components';
 import {
     type Block,
     type ContainerBlock,
     type HeadingBlock,
+    type RootBlock,
     isBlockWithBlockChildren,
     isBlockWithTextChildren,
     ParagraphBlock,
@@ -13,15 +15,60 @@ import { ref } from 'vue';
 
 export const usePageBuilderStore = defineStore('pageBuilder', () => {
     const structure = ref<Block | null>(null);
+    const libraryComponents = ref<LibraryComponent[]>([]);
 
     function setRoot(block: Block): void {
         structure.value = block;
     }
+
+    function setLibraryComponents(components: LibraryComponent[]): void {
+        libraryComponents.value = components;
+    }
+
+    function getLibraryComponent(id: number): LibraryComponent | undefined {
+        return libraryComponents.value.find((c) => c.id === id);
+    }
+
+    function parseComponentStructure(component: LibraryComponent): RootBlock {
+        const parsed = JSON.parse(component.structure) as RootBlock;
+        return {
+            ...parsed,
+            id: createId(),
+            componentId: component.id,
+        };
+    }
+
     const selectedBlockId = ref<string | null>(null);
     const activeDropZoneId = ref<string | null>(null);
     const isDragging = ref(false);
 
     const dropZoneElements = new Map<string, HTMLElement>();
+
+    /**
+     * Deep-clone the structure, stripping children from root blocks that
+     * reference a component (keeping only id, type, componentId).
+     */
+    function getStructureForSave(): Block | null {
+        if (!structure.value) return null;
+        return stripComponentChildren(JSON.parse(JSON.stringify(structure.value)));
+    }
+
+    function stripComponentChildren(block: Block): Block {
+        if (isBlockWithBlockChildren(block)) {
+            block.children = block.children.map((child) => {
+                if (child.type === 'root' && (child as RootBlock).componentId != null) {
+                    return {
+                        id: child.id,
+                        type: 'root' as const,
+                        componentId: (child as RootBlock).componentId,
+                        children: [],
+                    } as RootBlock;
+                }
+                return stripComponentChildren(child);
+            });
+        }
+        return block;
+    }
 
     function findBlock(blockId: string, root: Block | null = structure.value): Block | null {
         if (!root) return null;
@@ -109,15 +156,32 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         };
     }
 
+    function insertComponentBlock(parentId: string, index: number, componentId: number): void {
+        const component = getLibraryComponent(componentId);
+        if (!component) throw new Error(`Library component not found: ${componentId}`);
+
+        const rootBlock = parseComponentStructure(component);
+        const parent = findBlock(parentId);
+        if (!parent) throw new Error(`Parent block not found: ${parentId}`);
+        if (!isBlockWithBlockChildren(parent)) throw new Error(`Parent is not a container: ${parentId}`);
+        parent.children.splice(index, 0, rootBlock);
+    }
+
     function dropAtActiveZone(e: DragEvent): void {
         if (!activeDropZoneId.value || !e.dataTransfer) return;
 
+        const { parentId, index } = parseZoneId(activeDropZoneId.value);
+        if (!parentId) throw new Error(`Trying to drop at root: ${activeDropZoneId.value}`);
+
+        const componentIdStr = e.dataTransfer.getData('application/x-component-id');
+        if (componentIdStr) {
+            insertComponentBlock(parentId, index, parseInt(componentIdStr, 10));
+            endDrag();
+            return;
+        }
+
         const type = e.dataTransfer.getData('application/x-block-type') as Block['type'];
         if (!type) return;
-
-        const { parentId, index } = parseZoneId(activeDropZoneId.value);
-        if (!parentId) throw new Error(`Trying to drop at root, but block is not a root: ${activeDropZoneId.value}`);
-        console.log('dropAtActiveZone', parentId, index, type);
 
         insertBlock(parentId, index, type);
         endDrag();
@@ -184,6 +248,11 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
     return {
         structure,
         setRoot,
+        getStructureForSave,
+        libraryComponents,
+        setLibraryComponents,
+        getLibraryComponent,
+        parseComponentStructure,
         selectedBlockId,
         activeDropZoneId,
         isDragging,
@@ -193,6 +262,7 @@ export const usePageBuilderStore = defineStore('pageBuilder', () => {
         clearSelection,
         deleteBlock,
         insertBlock,
+        insertComponentBlock,
         updateBlockContent,
         updateBlockConfig,
         dropAtActiveZone,

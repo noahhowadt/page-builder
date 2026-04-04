@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { usePageBuilderStore } from '@/stores/pageBuilder';
-import { isBlockWithBlockChildren, type Block } from '@/types';
+import { isBlockWithBlockChildren, type Block, type LibraryComponent } from '@/types';
 import { HeadingIcon, LucideIcon, RectangleHorizontalIcon, TextIcon } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import BlockLibraryItem from './BlockLibraryItem.vue';
+import ComponentLibraryItem from './ComponentLibraryItem.vue';
 import ContainerConfigForm from './config-forms/ContainerConfigForm.vue';
 import HeadingConfigForm from './config-forms/HeadingConfigForm.vue';
 
-const activeTab = ref<'blocks' | 'structure' | 'config'>('blocks');
+const activeTab = ref<'blocks' | 'components' | 'structure' | 'config'>('blocks');
+
+const libraryComponents = inject(
+  'libraryComponents',
+  computed<LibraryComponent[]>(() => []),
+);
 const pageBuilder = usePageBuilderStore();
 
 const primitiveBlocks: Array<{
@@ -49,6 +55,12 @@ function onDragStart(e: DragEvent, blockType: string) {
   e.dataTransfer.effectAllowed = 'copy';
   e.dataTransfer.setData('application/x-block-type', blockType);
 }
+
+function onComponentDragStart(e: DragEvent, componentId: number) {
+  if (!e.dataTransfer) return;
+  e.dataTransfer.effectAllowed = 'copy';
+  e.dataTransfer.setData('application/x-component-id', String(componentId));
+}
 </script>
 
 <template>
@@ -61,7 +73,7 @@ function onDragStart(e: DragEvent, blockType: string) {
           type="button"
           role="tab"
           :aria-selected="activeTab === 'blocks'"
-          class="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors"
+          class="min-w-0 flex-1 px-1 py-2.5 text-[10px] font-semibold uppercase leading-none tracking-tight transition-colors"
           :class="activeTab === 'blocks'
             ? 'border-b-2 border-neutral-900 text-neutral-900 dark:border-neutral-100 dark:text-neutral-100'
             : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300'"
@@ -72,8 +84,20 @@ function onDragStart(e: DragEvent, blockType: string) {
         <button
           type="button"
           role="tab"
+          :aria-selected="activeTab === 'components'"
+          class="min-w-0 flex-1 px-1 py-2.5 text-[10px] font-semibold uppercase leading-none tracking-tight transition-colors"
+          :class="activeTab === 'components'
+            ? 'border-b-2 border-neutral-900 text-neutral-900 dark:border-neutral-100 dark:text-neutral-100'
+            : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300'"
+          @click="activeTab = 'components'"
+        >
+          Components
+        </button>
+        <button
+          type="button"
+          role="tab"
           :aria-selected="activeTab === 'structure'"
-          class="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors"
+          class="min-w-0 flex-1 px-1 py-2.5 text-[10px] font-semibold uppercase leading-none tracking-tight transition-colors"
           :class="activeTab === 'structure'
             ? 'border-b-2 border-neutral-900 text-neutral-900 dark:border-neutral-100 dark:text-neutral-100'
             : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300'"
@@ -85,7 +109,7 @@ function onDragStart(e: DragEvent, blockType: string) {
           type="button"
           role="tab"
           :aria-selected="activeTab === 'config'"
-          class="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors"
+          class="min-w-0 flex-1 px-1 py-2.5 text-[10px] font-semibold uppercase leading-none tracking-tight transition-colors"
           :class="activeTab === 'config'
             ? 'border-b-2 border-neutral-900 text-neutral-900 dark:border-neutral-100 dark:text-neutral-100'
             : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300'"
@@ -104,6 +128,22 @@ function onDragStart(e: DragEvent, blockType: string) {
             :block="block"
             draggable="true"
             @dragstart="onDragStart($event, block.type)"
+          />
+        </div>
+      </template>
+      <template v-else-if="activeTab === 'components'">
+        <div class="grid grid-cols-2 gap-2">
+          <template v-if="libraryComponents.length === 0">
+            <p class="col-span-2 text-sm text-neutral-500 dark:text-neutral-400">
+              No saved components yet. Create one under Components in the sidebar.
+            </p>
+          </template>
+          <ComponentLibraryItem
+            v-for="item in libraryComponents"
+            :key="item.id"
+            :item="item"
+            draggable="true"
+            @dragstart="onComponentDragStart($event, item.id)"
           />
         </div>
       </template>

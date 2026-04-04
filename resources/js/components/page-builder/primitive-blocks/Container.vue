@@ -4,9 +4,12 @@ import type { ContainerBlock } from '@/types';
 import { computed } from 'vue';
 import BlockRenderer from '../BlockRenderer.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     blockId: string;
-}>();
+    interactive?: boolean;
+}>(), {
+    interactive: true,
+});
 
 const store = usePageBuilderStore();
 const block = computed(() => store.findBlock(props.blockId) as ContainerBlock | null);
@@ -23,6 +26,6 @@ const config = computed(() => block.value?.config ?? { direction: 'column', gap:
             padding: `${config.padding}px`,
         }"
     >
-        <BlockRenderer :parent-id="blockId" empty-zone-fills-parent />
+        <BlockRenderer :parent-id="blockId" :interactive="interactive" empty-zone-fills-parent />
     </div>
 </template>

@@ -4,13 +4,14 @@ import { computed, onBeforeMount, provide, watch } from 'vue';
 import Canvas from '@/components/page-builder/Canvas.vue';
 import Sidebar from '@/components/page-builder/Sidebar.vue';
 import { usePageBuilderStore } from '@/stores/pageBuilder';
-import type { Block, LinkablePage, Page, RootBlock } from '@/types';
+import type { Block, LibraryComponent, LinkablePage, Page, RootBlock } from '@/types';
 
 const props = defineProps<{
     page: Page;
     structure: Block | null;
     updateUrl: string;
     linkablePages: LinkablePage[];
+    libraryComponents: LibraryComponent[];
 }>();
 
 provide(
@@ -18,22 +19,29 @@ provide(
     computed(() => props.linkablePages),
 );
 
+provide(
+    'libraryComponents',
+    computed(() => props.libraryComponents),
+);
+
 const store = usePageBuilderStore();
 
-function initStructure() {
+function init() {
     store.setRoot(props.structure as RootBlock);
+    store.setLibraryComponents(props.libraryComponents);
 }
 
-onBeforeMount(initStructure);
+onBeforeMount(init);
 watch(
     () => [props.page.id, props.structure] as const,
-    () => initStructure(),
+    () => init(),
     { deep: true },
 );
 
 function save() {
-    if (!store.structure) return;
-    router.put(props.updateUrl, { structure: store.structure });
+    const stripped = store.getStructureForSave();
+    if (!stripped) return;
+    router.put(props.updateUrl, { structure: stripped } as never);
 }
 </script>
 

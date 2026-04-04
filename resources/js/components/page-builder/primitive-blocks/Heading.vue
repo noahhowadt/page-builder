@@ -4,9 +4,12 @@ import { usePageBuilderStore } from '@/stores/pageBuilder';
 import type { HeadingBlock, TextNode } from '@/types';
 import Text from './Text.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     blockId: string;
-}>();
+    interactive?: boolean;
+}>(), {
+    interactive: true,
+});
 
 const store = usePageBuilderStore();
 
@@ -18,6 +21,7 @@ const level = computed(() => {
 const textRef = ref<{ startEditing: (e?: MouseEvent) => void } | null>(null);
 
 function onDblclick(e: MouseEvent) {
+    if (!props.interactive) return;
     e.stopPropagation();
     textRef.value?.startEditing(e);
 }
@@ -41,6 +45,6 @@ function onUpdateContent(content: TextNode[]) {
         }"
         @dblclick="onDblclick"
     >
-        <Text ref="textRef" :content="block?.content" :on-update-content="onUpdateContent" />
+        <Text ref="textRef" :content="block?.content" :on-update-content="interactive ? onUpdateContent : undefined" />
     </component>
 </template>

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePageRequest;
 use App\Http\Requests\UpdatePageRequest;
+use App\Models\Component;
 use App\Models\Page;
+use App\Support\PageStructureComponentResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -59,12 +61,22 @@ class PageController extends Controller
     {
         return Inertia::render('pages/Edit', [
             'page' => $page,
-            'structure' => $page->structure,
+            'structure' => PageStructureComponentResolver::resolve($page->structure ?? []),
             'updateUrl' => route('pages.update', $page),
             'linkablePages' => Page::query()
                 ->orderBy('title')
                 ->get(['id', 'title'])
                 ->map(fn (Page $p): array => ['id' => $p->id, 'title' => $p->title])
+                ->values()
+                ->all(),
+            'libraryComponents' => Component::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'structure'])
+                ->map(fn (Component $c): array => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'structure' => json_encode($c->structure),
+                ])
                 ->values()
                 ->all(),
         ]);

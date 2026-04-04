@@ -34,6 +34,7 @@ export interface TextNode {
 export interface RootBlock {
   id: string;
   type: 'root';
+  componentId?: number;
   children: Array<Block>;
 }
 
