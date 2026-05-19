@@ -5,9 +5,9 @@ services:
     image: postgres:latest
     container_name: my-postgres
     environment:
-      POSTGRES_PASSWORD: DimPP123
-      POSTGRES_USER: root
-      POSTGRES_DB: pagebuilder
+      POSTGRES_PASSWORD: 
+      POSTGRES_USER: 
+      POSTGRES_DB: 
     ports:
       - "5432:5432"
     volumes:
@@ -21,7 +21,7 @@ services:
     environment:
       APP_NAME: Laravel
       APP_ENV: local
-      APP_KEY: "base64:NnN1G/E8mCxovsRMNxNHrxLrAigYG/pTYgIwP18+aoY="
+      APP_KEY: ""
       APP_DEBUG: "true"
       APP_URL: "http://localhost:8080"
       APP_LOCALE: en
@@ -36,9 +36,9 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: "postgres"
       DB_PORT: 5432
-      DB_DATABASE: pagebuilder
-      DB_USERNAME: root
-      DB_PASSWORD: DimPP123
+      DB_DATABASE: 
+      DB_USERNAME: 
+      DB_PASSWORD: 
       SESSION_DRIVER: database
       SESSION_LIFETIME: 120
       SESSION_ENCRYPT: "false"
@@ -67,7 +67,7 @@ services:
       AWS_BUCKET: ""
       AWS_USE_PATH_STYLE_ENDPOINT: "false"
       VITE_APP_NAME: "${APP_NAME}"
-      SETUP_TOKEN: ZHyMz1FM6vqnC3kmAyCGHZbru7dwLhXe
+      SETUP_TOKEN: 
     ports:
       - "8080:80"
     networks:
